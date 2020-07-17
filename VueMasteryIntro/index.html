@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/VueMasteryIntro/style.css">
+  <link rel="stylesheet" href="./style.css">
   <title>myCartVue</title>
 </head>
 <body>
@@ -14,12 +14,12 @@
     <div class="cart">
       <p>Cart({{ cart.length }})</p>
     </div>
-    <product :premium="premium" @add-to-cart="updateCart"></product>
+    <product :premium="premium" @add-to-cart="updateCart"  @remove-from-cart="removeCart"></product>
   </div>
 
   <!-- vue -->
   <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
   <!-- Javascript -->
-  <script type="text/javascript" src="/VueMasteryIntro/main.js"></script>
+  <script type="text/javascript" src="./main.js"></script>
 </body>
 </html>

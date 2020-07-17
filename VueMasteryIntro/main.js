@@ -16,11 +16,13 @@ Vue.component('product', {
   
         <div class="product-info">
             <h1>{{ product }}</h1>
-            <p v-if="inStock">In Stock</p>
+            <p>{{ descriptions }}</p>
+            <a :href="link" target="_blank">More products like this</a>
+            <p v-if="inStock">In Stock <br><br><span>{{ sale }}</span> </p>
             <p v-else>Out of Stock</p>
-  
-            <info-tabs :shipping="shipping" :details="details"></info-tabs>
-  
+            
+            <info-tabs :shipping="shipping" :details="details" :sizes="sizes"></info-tabs>
+
             <div class="color-box"
                  v-for="(variant, index) in variants" 
                  :key="variant.variantId"
@@ -35,7 +37,13 @@ Vue.component('product', {
               >
             Add to cart
             </button>
-  
+            <button v-on:click="removeFromCart" 
+              :disabled="!inStock"
+              :class="{ disabledButton: !inStock }"
+              >
+            Remove from cart
+            </button>
+            
          </div> 
 
          <product-tabs :reviews="reviews"></product-tabs>
@@ -48,6 +56,10 @@ Vue.component('product', {
       brand: 'Vue Mastery',
       selectedVariant: 0,
       details: ['80% cotton', '20% polyester', 'Gender-neutral'],
+      descriptions: 'A pair of warm, fuzzy socks.',
+      sizes: ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'],
+      onSale: true,
+      link: 'https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=socks',
       variants: [
         {
           variantId: 2234,
@@ -69,9 +81,12 @@ Vue.component('product', {
     addToCart() {
       this.$emit('add-to-cart', this.variants[this.selectedVariant].variantId)
     },
+    removeFromCart() {
+      this.$emit('remove-from-cart', this.variants[this.selectedVariant].variantId)
+    },
     updateProduct(index) {
       this.selectedVariant = index
-    }
+    },
   },
   computed: {
     title() {
@@ -82,6 +97,12 @@ Vue.component('product', {
     },
     inStock() {
       return this.variants[this.selectedVariant].variantQuantity
+    },
+    sale() {
+      if (this.onSale) {
+        return this.brand + ' ' + this.product + ' are on sale!'
+      }
+      return this.brand + ' ' + this.product + ' are not on sale'
     },
     shipping() {
       if (this.premium) {
@@ -123,6 +144,16 @@ Vue.component('product-review', {
         </select>
       </p>
 
+      <p>Would you recommend this product?</p>
+      <label>
+        Yes
+        <input type="radio" value="Yes" v-model="recommend"/>
+      </label>
+      <label>
+        No
+        <input type="radio" value="No" v-model="recommend"/>
+      </label>
+
       <p>
         <input type="submit" value="Submit">  
       </p>    
@@ -134,6 +165,7 @@ Vue.component('product-review', {
       name: null,
       review: null,
       rating: null,
+      recommend: null,
       errors: []
     }
   },
@@ -144,17 +176,20 @@ Vue.component('product-review', {
         let productReview = {
           name: this.name,
           review: this.review,
-          rating: this.rating
+          rating: this.rating,
+          recommend: this.recommend
         }
         eventBus.$emit('review-submitted', productReview)
         this.name = null
         this.review = null
         this.rating = null
+        this.recommend = null
       }
       else {
         if (!this.name) this.errors.push("Name required.")
         if (!this.review) this.errors.push("Review required.")
         if (!this.rating) this.errors.push("Rating required.")
+        if (!this.recommend) this.errors.push("Recommendation required.")
       }
     }
   }
@@ -212,6 +247,10 @@ Vue.component('info-tabs', {
     details: {
       type: Array,
       required: true
+    },
+    sizes: {
+      type: Array,
+      required: true
     }
   },
   template: `
@@ -235,12 +274,17 @@ Vue.component('info-tabs', {
             <li v-for="detail in details">{{ detail }}</li>
           </ul>
         </div>
-    
+
+        <div v-show="selectedTab === 'Sizes'">
+          <ul>
+            <li v-for="size in sizes">{{ size }}</li>
+          </ul>
+        </div>
       </div>
     `,
   data() {
     return {
-      tabs: ['Shipping', 'Details'],
+      tabs: ['Shipping', 'Details','Sizes'],
       selectedTab: 'Shipping'
     }
   }
@@ -255,6 +299,9 @@ var app = new Vue({
   methods: {
     updateCart(id) {
       this.cart.push(id)
+    },
+    removeCart(id) {
+      this.cart.shift(id)
     }
   }
 })
